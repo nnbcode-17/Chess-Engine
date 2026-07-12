@@ -1,7 +1,6 @@
 #ifndef BOARD_H
 #define BOARD_H
 #include <stdint.h>
-#include <raylib.h>
 
 #define PAWN_VAL 100
 #define KNIGHT_VAL 300
@@ -15,29 +14,31 @@ typedef  int32_t i32;
 typedef uint8_t u8;
 
 typedef enum {
+    EMPTY, 
     PAWN,
     KNIGHT,
     BISHOP,
     ROOK,
     QUEEN,
-    KING,
-    EMPTY 
+    KING
 } Piece_t;
 
 typedef struct {
     Piece_t type;
     i32 value;
     u8 color;
-    u8 firstMove;
 } Piece;
 
 typedef struct {
     Piece board[8][8];
+    u8 castling_b;
+    u8 castling_w;
 } BoardState;
 
+typedef struct {
+    i32 row, col;
+} Pos;
 
-Texture2D *loadSprites(void);
-void drawBoard(void);
 void initBoardState(BoardState *board);
-void displayBoardState(BoardState *board, Texture2D *sprites);
+BoardState fenToBoard(const char *str);
 #endif //BOARD_H

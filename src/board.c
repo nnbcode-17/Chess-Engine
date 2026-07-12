@@ -1,47 +1,5 @@
 #include "../inc/board.h"
-#include <stdlib.h>
-#include <raylib.h>
-
-// Loads the png imgs into an array of Textures and returns the array.
-Texture2D *loadSprites(void)
-{
-     char *fileNames[] = {
-        "assests/pawn_w.png", "assests/pawn_b.png", "assests/knight_w.png", "assests/knight_b.png",
-        "assests/bishop_w.png", "assests/bishop_b.png", "assests/rook_w.png", "assests/rook_b.png",
-        "assests/queen_w.png", "assests/queen_b.png", "assests/king_w.png", "assests/king_b.png"
-    };
-    Texture2D *imgs = malloc(sizeof(Texture2D) * 12);
-
-    for (i32 i = 0; i < 12; i++)  {
-        imgs[i] = LoadTexture(fileNames[i]);
-    }
-
-    return imgs;
-}
-
-// This function simply draws the checkboard pattern onto the window.
-void drawBoard(void)
-{
-    int boardSize = 800;
-    int dimensions = 8;
-    int cellSize = boardSize / dimensions;
-    Color light = WHITE;
-    Color dark = BEIGE;
-
-    for( i32 i = 0; i < dimensions; i++) {
-        for(i32 j = 0; j < dimensions; j++) {
-            int xpos = j * cellSize;
-            int ypos = i * cellSize;
-
-            if ((i + j) % 2 == 0) {
-                DrawRectangle(xpos, ypos, cellSize, cellSize, light);
-            }
-            else {
-                DrawRectangle(xpos, ypos, cellSize, cellSize, dark);
-            }
-        }
-    }
-}
+#include <stdio.h>
 
 // This function takes in a pointer to a BoardState struct and sets up the Chess Board
 void initBoardState(BoardState *board)
@@ -55,8 +13,8 @@ void initBoardState(BoardState *board)
             if (i == 0 || i == 7) {
                 Piece_t type = types[k % 5];
                 int value = values[k % 5];
-                u8 color = i == 0 ? 1 : 0;
-                Piece p = {.type = type, .value = value, .color = color, .firstMove = true};
+                u8 color = i == 0 ? 1 : 2;
+                Piece p = {.type = type, .value = value, .color = color};
                 board->board[i][j] = p;
                 if (j < 4){
                     k++;
@@ -70,39 +28,101 @@ void initBoardState(BoardState *board)
             }
             else if(i == 1 || i == 6) {
                 Piece_t type = types[5];
-                u8 color = i == 1? 1 : 0;
+                u8 color = i == 1? 1 : 2;
                 int value = values[5];
-                Piece p = {.type = type, .value = value, .color = color, .firstMove = true};
+                Piece p = {.type = type, .value = value, .color = color};
                 board->board[i][j] = p;
             }
             else {
-                Piece p = {.type = EMPTY, .value = -1, .color = 0, .firstMove = false};
+                Piece p = {.type = EMPTY, .value = -1, .color = 0};
                 board->board[i][j] = p;
             }
         }
     }
 }
 
-// This function takes a pointer to a BoardState struct and an array of Texture2D to display current state of the board.
-void displayBoardState(BoardState *board, Texture2D *sprites)
+// This is a prototype for testing out different boardstates using FEN strings.
+BoardState fenToBoard(const char *str)
 {
-    drawBoard();
+    BoardState board = {};
+    i32 row = 0;
+    const char *def = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    if (str == NULL) {
+        str = def;
+    }
 
-    for( i32 i = 0; i < 8; i++) {
-        for (i32 j = 0; j < 8; j++) {
-            Piece p = board->board[i][j];
-            Texture2D img;
-            if (p.type == EMPTY) continue;
+    while(*str) {
 
-            i32 idx = p.type * 2;
-            if (p.color) {
-                img = sprites[idx + 1];
+        for (i32 col = 0; col <= 8; col++) {
+
+            if (*str - '0' >= 1 && *str - '0' <= 8) {
+                printf("Triggered\n");
+                i32 value = *str - '0';
+                str++;
+                for(i32 i = 0; i < value && col < 8; col++, i++) {
+                    printf("col: %d \n", col);
+                    board.board[row][col] = (Piece){EMPTY, -1, 0};
+                }
             }
-            else {
-                img = sprites[idx];
-            }
+            if (col == 8) break;
 
-            DrawTexture(img, j * 100 + 5, i * 100 + 5, WHITE);
+            switch(*str) {
+                case 'p':
+                    board.board[row][col] = (Piece){PAWN, PAWN_VAL, 1};
+                    str++;
+                    break;
+                case 'n':
+                    board.board[row][col] = (Piece){KNIGHT, KNIGHT_VAL, 1};
+                    str++;
+                    break;
+                case 'b':
+                    board.board[row][col] = (Piece){BISHOP, BISHOP_VAL, 1};
+                    str++;
+                    break;
+                case 'r':
+                    board.board[row][col] = (Piece){ROOK, ROOK_VAL, 1};
+                    str++;
+                    break;
+                case 'q':
+                    board.board[row][col] = (Piece){QUEEN, QUEEN_VAL, 1};
+                    str++;
+                    break;
+                case 'k':
+                    board.board[row][col] = (Piece){KING, KING_VAL, 1};
+                    str++;
+                    break;
+                case 'P':
+                    board.board[row][col] = (Piece){PAWN, PAWN_VAL, 2};
+                    str++;
+                    break;
+                case 'N':
+                    board.board[row][col] = (Piece){KNIGHT, KNIGHT_VAL, 2};
+                    str++;
+                    break;
+                case 'B':
+                    board.board[row][col] = (Piece){BISHOP, BISHOP_VAL, 2};
+                    str++;
+                    break;
+                case 'R':
+                    board.board[row][col] = (Piece){ROOK, ROOK_VAL, 2};
+                    str++;
+                    break;
+                case 'Q':
+                    board.board[row][col] = (Piece){QUEEN, QUEEN_VAL, 2};
+                    str++;
+                    break;
+                case 'K':
+                    board.board[row][col] = (Piece){KING, KING_VAL, 2};
+                    str++;
+                    break;
+                case '/':
+                    row++;
+                    str++;
+                    col = 8;
+                    break;
+            }
         }
     }
+    return board;
 }
+
