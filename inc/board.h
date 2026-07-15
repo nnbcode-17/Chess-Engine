@@ -39,6 +39,6 @@ typedef struct {
     i32 row, col;
 } Pos;
 
-void initBoardState(BoardState *board);
+BoardState initBoardState();
 BoardState fenToBoard(const char *str);
 #endif //BOARD_H

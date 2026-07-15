@@ -93,7 +93,9 @@ bool getPosition(Pos *pos)
 
     return false;
 }
-void getInput(BoardState *board){
+
+// prototype fuction to recieve mouse click inputs from user
+void getInput(BoardState *state){
     static Pos posArr[2] = {};
     static u8 idx = 0;
     static Pos movesList[27] = {};
@@ -103,18 +105,26 @@ void getInput(BoardState *board){
     Pos curr;
 
     if (getPosition(&curr)){
-        if (idx == 0 && board->board[curr.row][curr.col].type) {
+        if (idx == 0 && state->board[curr.row][curr.col].type) {
             posArr[idx++] = curr;
-            color = board->board[curr.row][curr.col].color;
-            size = generateMoves(board, curr, movesList);
+            color = state->board[curr.row][curr.col].color;
+            size = generateMoves(state, curr, movesList);
         }
         else if (idx == 1 && curr.row == posArr[0].row && posArr[0].col == curr.col){
             color = 0;
             idx = 0;
         }
-        else if (idx == 1 && board->board[curr.row][curr.col].color == color) {
-            posArr[idx - 1] = curr;
-            size = generateMoves(board, curr, movesList);
+        else if (idx == 1 && state->board[curr.row][curr.col].color == color) {
+            Piece from = state->board[posArr[0].row][posArr[0].col];
+            Piece to = state->board[curr.row][curr.col];
+
+            if (from.type == KING && to.type == ROOK) {
+                posArr[idx++] = curr;
+            }
+            else {
+                posArr[idx - 1] = curr;
+                size = generateMoves(state, curr, movesList);
+            }
         }
         else {
             for (i32 i = 0; i < size; i++) {
@@ -127,7 +137,7 @@ void getInput(BoardState *board){
     }
 
     if (idx == 2) {
-         swap(board, posArr);
+         swap(state, posArr);
         idx = 0;
         color = 0;
         size = 0;

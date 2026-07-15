@@ -4,8 +4,21 @@
 // A helper function that connects all the generate moves under one function.
 i32 generateMoves(BoardState *state, Pos pos, Pos *moves)
 {
+    if (state->board[pos.row][pos.col].color == 1) {
+        u8 flag = state->board[0][4].type == KING;
+        state->castling_b = state->castling_b && flag? 1 : 0;
+        flag = state->board[0][0].type == ROOK || state->board[0][7].type == ROOK;
+        state->castling_b = state->castling_b && flag? 1 : 0;
+    }
+
+    if (state->board[pos.row][pos.col].color == 2){
+        u8 flag = state->board[7][4].type == KING;
+        state->castling_w = state->castling_w && flag? 1 : 0;
+         flag = state->board[7][0].type == ROOK || state->board[7][7].type == ROOK;
+        state->castling_w = state->castling_w && flag? 1 : 0;
+    }
+
     switch (state->board[pos.row][pos.col].type) {
-        int c;
         case PAWN:
             return generatePawnMoves(state, pos, moves);
         case KNIGHT:
@@ -202,6 +215,14 @@ i32 generateQueenMoves(BoardState *state, Pos pos, Pos *moves)
 // Generates all valid moves for a kings position on the current board state.
 i32 generateKingMoves(BoardState *state, Pos pos, Pos *moves)
 {
+    u8 castlingActive = 0;
+    if (state->board[pos.row][pos.col].color == 1) {
+        castlingActive = state->castling_b;
+    }
+    if (state->board[pos.row][pos.col].color == 2){
+        castlingActive = state->castling_w;
+    }
+
     i32 offset[][2] = {
         {0,1}, {0, -1},
         {1, 0}, {-1, 0},
@@ -227,6 +248,27 @@ i32 generateKingMoves(BoardState *state, Pos pos, Pos *moves)
         }
     }
 
+    if (castlingActive) {
+        i32 i  = pos.col + 1;
+        while (i < 8 && state->board[pos.row][i].type == EMPTY) {
+            i++;
+        }
+
+        if (i <  8 && state->board[pos.row][i].type == ROOK) {
+            moves[count++] = (Pos){.row = pos.row, .col = i};
+        }
+
+        i = pos.col - 1;
+
+        while (i > -1 && state->board[pos.row][i].type == EMPTY) {
+            i--;
+        }
+
+        if ( i > -1 && state->board[pos.row][i].type == ROOK) {
+            moves[count++] = (Pos){.row = pos.row, .col = i};
+        }
+    }
+
     return count;
 }
 
@@ -238,6 +280,40 @@ void swap(BoardState *state, Pos *pos)
     u8 isCapture = 0;
     u8 flag = 0;
     u8 passant = 0;
+
+    if (temp.color == to.color){
+        if (temp.type == KING && to.type == ROOK){
+            if (temp.color == 1 && state->castling_b) {
+                if (pos[1].col == 0) {
+                    state->board[pos[0].row][pos[0].col - 2] = temp;
+                    state->board[pos[0].row][pos[0].col - 1] = to;
+                }
+                else {
+                    state->board[pos[0].row][pos[0].col + 1] = to;
+                    state->board[pos[0].row][pos[0].col + 2] = temp;
+                }
+                state->board[pos[0].row][pos[0].col] = (Piece){EMPTY, -1, 0};
+                state->board[pos[1].row][pos[1].col] = (Piece){EMPTY, -1, 0};
+                state->castling_b = 0;
+                return;
+            } 
+            else if (temp.color == 2 && state->castling_w) {
+                if (pos[1].col == 0) {
+                    state->board[pos[0].row][pos[0].col - 1] = to;
+                    state->board[pos[0].row][pos[0].col - 2] = temp;
+                }
+                else {
+                    state->board[pos[0].row][pos[0].col + 1] = to;
+                    state->board[pos[0].row][pos[0].col + 2] = temp;
+                }
+                state->board[pos[0].row][pos[0].col] = (Piece){EMPTY, -1, 0};
+                state->board[pos[1].row][pos[1].col] = (Piece){EMPTY, -1, 0};
+                state->castling_w = 0;
+                return;
+            }
+        }
+
+    }
 
     if (temp.type == PAWN){
         passant = temp.color == 1? 4 : 3;

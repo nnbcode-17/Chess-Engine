@@ -6,9 +6,8 @@ int main(void) {
     SetTargetFPS(15);
 
     Texture2D *sprites = loadSprites();
-    BoardState board;
+    BoardState board = initBoardState();
 
-    initBoardState(&board);
     //BoardState b = fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
     while(!WindowShouldClose()) {
         getInput(&board);

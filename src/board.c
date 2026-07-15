@@ -2,10 +2,11 @@
 #include <stdio.h>
 
 // This function takes in a pointer to a BoardState struct and sets up the Chess Board
-void initBoardState(BoardState *board)
+BoardState initBoardState()
 {
     Piece_t types[] = {ROOK, KNIGHT, BISHOP, QUEEN, KING, PAWN};
     int values[] = {ROOK_VAL, KNIGHT_VAL, BISHOP_VAL, QUEEN_VAL, KING_VAL, PAWN_VAL};
+    BoardState state = {.castling_b = 1, .castling_w = 1};
 
     for (i32 i = 0; i < 8; i++) {
         i32 k = 0;
@@ -15,7 +16,7 @@ void initBoardState(BoardState *board)
                 int value = values[k % 5];
                 u8 color = i == 0 ? 1 : 2;
                 Piece p = {.type = type, .value = value, .color = color};
-                board->board[i][j] = p;
+                state.board[i][j] = p;
                 if (j < 4){
                     k++;
                 }
@@ -31,14 +32,16 @@ void initBoardState(BoardState *board)
                 u8 color = i == 1? 1 : 2;
                 int value = values[5];
                 Piece p = {.type = type, .value = value, .color = color};
-                board->board[i][j] = p;
+                state.board[i][j] = p;
             }
             else {
                 Piece p = {.type = EMPTY, .value = -1, .color = 0};
-                board->board[i][j] = p;
+                state.board[i][j] = p;
             }
         }
     }
+
+    return state;
 }
 
 // This is a prototype for testing out different boardstates using FEN strings.
